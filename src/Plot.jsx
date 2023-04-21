@@ -10,7 +10,6 @@ const plot = (datos, svgSindro) => {
      const width = svgEl._groups[0][0].clientWidth  ;
      const height = svgEl._groups[0][0].clientHeight  ;
 
-     console.log( height, width );
 
      const svg = svgEl.append("g")
           .attr("width", `${width}`)
@@ -18,9 +17,9 @@ const plot = (datos, svgSindro) => {
 
      const margin = { left: 25,  top:20, right:20, bottom:20 } ;
 
-     const errorAbs = datos.cad.map( (item,idx) => {
+     const errorRel = datos.cad.map( (item,idx) => {
           return(
-               Math.abs(item- datos.med[idx])/item*100
+               Math.abs(item - datos.med[idx])/item*100
           )
      }) ;
 
@@ -30,7 +29,7 @@ const plot = (datos, svgSindro) => {
                     .range( [margin.left, width-margin.right] );
 
      const yScale = d3.scaleLinear()
-                    .domain( d3.extent(errorAbs) )
+                    .domain( d3.extent(errorRel) )
                     .range( [height-margin.top, margin.bottom] );
 
      const x_axis = d3.axisBottom()
@@ -65,7 +64,7 @@ const plot = (datos, svgSindro) => {
 
      // Grafica : datos
      svg.append("path")
-          .datum(errorAbs)
+          .datum(errorRel)
           .attr("fill", 'none')
           .attr("stroke", 'rgb(30,240,50,100)')
           .attr("stroke-width", '2')
@@ -76,7 +75,7 @@ const plot = (datos, svgSindro) => {
           );
 
      svg.selectAll('circle')
-          .data(errorAbs)
+          .data(errorRel)
           .enter()
           .append('circle')
           .attr('cx', (d,i) => xScale(datos.cad[i]))
@@ -96,14 +95,14 @@ const Label = styled.span`
 
 const CalcTolerancia = ({data, diametro='true'}) => {
 
-     const errorAbs = data.cad.map( (item,idx) => {
+     const errorRel = data.cad.map( (item,idx) => {
           return(
                Math.abs(item- data.med[idx])/item*100
           )
      }) ;
 
      const scale = d3.scalePow()//d3.scaleSqrt()
-                    .domain( errorAbs )
+                    .domain( errorRel )
                     .range( data.cad );
 
      const [cota, setCota] = useState( data.cad[1] ) ;
@@ -150,7 +149,7 @@ export const Plot = ({data}) => {
 
      return(
           <>
-               <svg ref={svgSindro} width={'100%'} height={'26rem'}/>
+               <svg ref={svgSindro} width={'100%'} height={'18rem'}/>
                <CalcTolerancia data={data} />
           </>
      );

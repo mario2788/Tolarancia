@@ -1,5 +1,10 @@
 import React from 'react' ;
 
+import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { ReactKeycloakProvider, useKeycloak } from "@react-keycloak/web";
+import keycloak from "./keycloak.js"
+import PrivateRoute from "./helpers/PrivateRoute";
+
 import styled from 'styled-components' ;
 
 import { Plot } from './Plot'  ;
@@ -30,57 +35,184 @@ const Grid = styled.div`
      justify-content: space-around;
 `;
 
-const App = () => {
-
-     console.clear();
+const Page = ()=> {
 
      const Cell = ({label,data}) => {
           return(
                <Box>
-                    <p align='center'>
+                    <h2 align='center'>
                          {label}
-                    </p>
+                    </h2>
                     <BoxPlot>
                          <Plot data={data} />
                     </BoxPlot>
                </Box>
           )
      }
-     return (
-          <div >
+
+     return(
+          <div>
                <h1 align='center'>
                     Tolerancia
                </h1>
                <Grid>
                     {
-                         ['Circulos - Externos','Circulos - Internos'].map( (label, idx) =>
+                         ['Cota externa pieza impresa','Cota interna pieza impresa'].map( (label, idx) =>
                               <Cell
                                    label={label}
                                    key={idx}
                                    data={{
-                                        cad: !idx ? datos.cir.ext.cad : datos.cir.int.cad,
-                                        med:meanArray( !idx ? datos.cir.ext.xMed : datos.cir.int.xMed,
-                                             !idx ? datos.cir.ext.yMed : datos.cir.int.yMed)
+                                        cad: !idx
+                                                  ? datos.abs.ext.cad
+                                                  : datos.abs.int.cad,
+                                        med:meanArray(
+                                             !idx
+                                                  ? datos.abs.ext.xMed
+                                                  : datos.abs.int.xMed,
+                                             !idx
+                                                  ? datos.abs.ext.yMed
+                                                  : datos.abs.int.yMed
+                                        )
                                    }}
                               />
                          )
                     }
                     {
-                         ['Rectangulos - Externos','Rectangulos - Internos'].map( (label, idx) =>
-                              <Cell
-                                   label={label}
-                                   key={idx}
-                                   data={{
-                                        cad: !idx ? datos.cua.ext.cad: datos.cua.int.cad,
-                                        med:meanArray( !idx ? datos.cua.ext.xMed : datos.cua.int.xMed,
-                                             !idx ? datos.cua.ext.yMed : datos.cua.int.yMed)
-                                   }}
-                              />
-                         )
+                         // ['Eje Circular','Agujero Circular'].map( (label, idx) =>
+                         //      <Cell
+                         //           label={label}
+                         //           key={idx}
+                         //           data={{
+                         //                cad: !idx ? datos.cir.ext.cad : datos.cir.int.cad,
+                         //                med:meanArray( !idx ? datos.cir.ext.xMed : datos.cir.int.xMed,
+                         //                     !idx ? datos.cir.ext.yMed : datos.cir.int.yMed)
+                         //           }}
+                         //      />
+                         // )
+                    }
+                    {
+                         // ['Rectángulo Cuerpo','Rectángulo Vaciado'].map( (label, idx) =>
+                         //      <Cell
+                         //           label={label}
+                         //           key={idx}
+                         //           data={{
+                         //                cad: !idx ? datos.cua.ext.cad: datos.cua.int.cad,
+                         //                med:meanArray( !idx ? datos.cua.ext.xMed : datos.cua.int.xMed,
+                         //                     !idx ? datos.cua.ext.yMed : datos.cua.int.yMed)
+                         //           }}
+                         //      />
+                         // )
                     }
                </Grid>
           </div>
+     )
+}
+
+const Nav = () => {
+
+     const { keycloak, initialized } = useKeycloak();
+
+     console.log( keycloak.authenticated, initialized );
+
+     return(
+          <div >
+               {
+                    !keycloak.authenticated
+                    &&
+                    (
+                         <button
+                              type="button"
+                              onClick={() => keycloak.login()}
+                         >
+                              Login
+                         </button>
+                    )
+               }
+
+               {
+                    !!keycloak.authenticated
+                    &&
+                    (
+                         <button
+                              type="button"
+                              onClick={() => keycloak.logout()}
+                         >
+                              Logout ({keycloak.tokenParsed.preferred_username})
+                         </button>
+                    )
+               }
+          </div>
      );
+};
+
+
+const App = () => {
+
+     console.clear();
+
+     return (
+          <BrowserRouter>
+               <Routes>
+                    <Route
+                         exact path="/home"
+                         element={
+                              <div>
+                                   Welcome to my page
+                              </div>
+                         }
+                    />
+                    <Route
+                         path="/"
+                         element={
+                              <Page/>
+                         }
+                    />
+               </Routes>
+          </BrowserRouter>
+     );
+
+     // return (
+     //      <div >
+     //           <ReactKeycloakProvider authClient={keycloak}>
+     //
+     //                <Nav/>
+     //
+     //                <PrivateRoute>
+     //                     <Page/>
+     //                </PrivateRoute>
+     //
+     //           </ReactKeycloakProvider>
+     //      </div>
+     // );
+     // return (
+     //      <div >
+     //           <ReactKeycloakProvider authClient={keycloak}>
+     //
+     //                <Nav/>
+     //
+     //                <BrowserRouter>
+     //                     <Routes>
+     //                          <Route
+     //                               exact path="/home"
+     //                               element={
+     //                                    <div>
+     //                                         Welcome to my page
+     //                                    </div>
+     //                               }
+     //                          />
+     //                          <Route
+     //                               path="/"
+     //                               element={
+     //                                    <PrivateRoute>
+     //                                         <Page/>
+     //                                    </PrivateRoute>
+     //                               }
+     //                          />
+     //                     </Routes>
+     //                </BrowserRouter>
+     //           </ReactKeycloakProvider>
+     //      </div>
+     // );
 }
 
 export default App;
